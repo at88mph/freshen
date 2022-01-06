@@ -4,7 +4,7 @@
 FROM elixir:slim
 
 RUN apt-get update \
-    && apt-get install -y inotify-tools \
+    && apt-get install -y git inotify-tools \
     && apt-get clean \
     && rm -rf /var/apt/lists/*
 
