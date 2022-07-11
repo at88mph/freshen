@@ -9,7 +9,8 @@ defmodule Search do
   end
 
   def get_results(term) do
-    encoded_term = %{"query" => term, "limit" => 25, "type" => "movie"} |> URI.encode_query
+    encoded_term = %{"query" => term, "limit" => 25, "type" => "movie"}
+                   |> URI.encode_query
 
     HTTPoison.get("#{@url_prefix}#{encoded_term}")
     |> handle_response(term)

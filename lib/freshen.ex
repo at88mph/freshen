@@ -8,8 +8,7 @@ defmodule Freshen do
   @meta_data_expression ~r/movieDetails\s=\s(.*);/
   # @date_parse_expression ~r/([A-Za-z]{3})\s(\d+),\s(\d{4})/
   @year_parse_expression ~r/^(\d*),/
-  @month_name_list ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-  @url_prefix "https://www.rottentomatoes.com/m"
+  @url_prefix "https://www.rottentomatoes.com"
 
   @spec setup :: :ignore | {:error, any} | {:ok, pid}
   def setup do
@@ -21,29 +20,25 @@ defmodule Freshen do
 
   ## Examples
 
-      iex> Freshen.get_stats("Army of Darkness")
+      iex> Freshen.get_stats("/m/army_of_darkness")
       {:ok, "{\"audience_score\":\"87\",\"critics_score\":\"73\",\"movie_title\":\"Army of Darkness\",
       \"release_date\":\"Feb 19, 1993\"}"}
 
   """
-  def get_stats(title_input) do
-    title_id = title_input
-    |> String.downcase
-    |> String.replace(~r/\s/, "_")
+  def get_stats(path) do
+    IO.puts("Getting title #{path}")
 
-    IO.puts("Getting title #{title_id}")
-
-    HTTPoison.get("#{@url_prefix}/#{title_id}")
-    |> handle_response(title_input)
+    HTTPoison.get("#{@url_prefix}#{path}")
+    |> handle_response(path)
   end
 
-  defp handle_response({:error, err = %HTTPoison.Error{}}, title_input) do
-    {:error, "Unable to get info for #{title_input}\nReason: #{err.reason}"}
+  defp handle_response({:error, err = %HTTPoison.Error{}}, path) do
+    {:error, "Unable to get info for #{path}\nReason: #{err.reason}"}
   end
 
-  defp handle_response({:ok, %Response{body: body}}, title_input) do
-    score_data_json = decode_capture(title_input, Regex.run(@score_data_expression, body))
-    meta_data_json = decode_capture(title_input, Regex.run(@meta_data_expression, body))
+  defp handle_response({:ok, %Response{body: body}}, path) do
+    score_data_json = decode_capture(path, Regex.run(@score_data_expression, body))
+    meta_data_json = decode_capture(path, Regex.run(@meta_data_expression, body))
 
     info = Map.get(score_data_json, "scoreboard")
            |> Map.get("info")
